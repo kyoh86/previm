@@ -148,7 +148,7 @@ let s:t = themis#suite('url_path_mappings') "{{{
 
 function! s:t.setup()
   let self.cwd = getcwd()
-  let self.tmp = substitute(fnamemodify(tempname(), ':p'), '[\/]$', '', '')
+  let self.tmp = substitute(resolve(tempname()), '[\/]$', '', '')
   call mkdir(self.tmp, 'p')
 
   let self.exists_global_mappings = exists('g:previm_url_path_mappings')
@@ -197,7 +197,7 @@ function! s:t.resolve_with_cwd_placeholder()
   let g:previm_url_path_mappings = {'/assets/': '{cwd}/public/assets/'}
 
   let actual = previm#resolve_url_path_mapping('/assets/example.png')
-  let expected = self.tmp . '/public/assets/example.png'
+  let expected = getcwd() . '/public/assets/example.png'
   call s:assert.equals(actual, expected)
 endfunction
 
