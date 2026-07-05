@@ -148,7 +148,7 @@ let s:t = themis#suite('url_path_mappings') "{{{
 
 function! s:t.setup()
   let self.cwd = getcwd()
-  let self.tmp = tempname()
+  let self.tmp = substitute(fnamemodify(tempname(), ':p'), '[\/]$', '', '')
   call mkdir(self.tmp, 'p')
 
   let self.exists_global_mappings = exists('g:previm_url_path_mappings')

@@ -367,6 +367,7 @@ function! previm#relative_to_absolute_filepath(text, mkd_dir) abort
   let mapped_path = previm#resolve_url_path_mapping(elem.path)
   if !empty(mapped_path)
     let mapped_path = previm#url_path_mapping_local_path(mapped_path)
+    let mapped_path = substitute(mapped_path, '\\', '\\\\', 'g')
     let pre_slash = s:start_with(mapped_path, '/') ? '' : '/'
     let local_path = substitute(mapped_path, ' ', '%20', 'g')
   elseif s:is_absolute_path(elem.path)
