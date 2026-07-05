@@ -104,6 +104,25 @@ g:previm_open_cmd					*g:previm_open_cmd*
         let g:previm_open_cmd = 'open -a Google\ Chrome'
 <
 
+g:previm_wsl_open_path_format			*g:previm_wsl_open_path_format*
+	Type:String
+
+	Specify the preview HTML path format passed to |g:previm_open_cmd| when
+	|g:previm_wsl_mode| is 1.
+
+	Supported values are:
+	  windows	Convert the preview HTML path with wslpath -w and pass it
+			as a Windows file:/// URL. This is the default and preserves
+			the previous behavior.
+	  wsl		Pass the preview HTML path as a WSL path. Use this when
+			|g:previm_open_cmd| is wslview.
+>
+	" .vimrc
+	let g:previm_wsl_mode = 1
+	let g:previm_open_cmd = 'wslview'
+	let g:previm_wsl_open_path_format = 'wsl'
+<
+
 g:previm_enable_realtime			*g:previm_enable_realtime*
 	Type:Num
 

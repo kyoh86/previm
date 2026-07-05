@@ -17,8 +17,7 @@ function! previm#open(preview_html_file) abort
     elseif has('win32unix')
       call s:system(g:previm_open_cmd . ' '''  . system('cygpath -w ' . a:preview_html_file) . '''')
     elseif get(g:, 'previm_wsl_mode', 0) ==# 1
-      let wsl_file_path = trim(system('wslpath -w ' . a:preview_html_file), "\r\n", 2)
-      call s:system(g:previm_open_cmd . " 'file:///" . fnamemodify(wsl_file_path, ':gs?\\?\/?') . '''')
+      call s:system(g:previm_open_cmd . " '" . previm#wsl_open_path(a:preview_html_file) . '''')
     elseif has('win32')
       call s:system(g:previm_open_cmd . ' "'  . a:preview_html_file . '"')
     else
@@ -42,6 +41,17 @@ function! previm#open(preview_html_file) abort
     au!
     au VimLeave * call previm#wipe_cache_for_self()
   augroup END
+endfunction
+
+function! previm#wsl_open_path(preview_html_file, ...) abort
+  if get(g:, 'previm_wsl_open_path_format', 'windows') ==# 'wsl'
+    return a:preview_html_file
+  endif
+
+  let wsl_file_path = a:0 > 0
+        \ ? a:1
+        \ : trim(system('wslpath -w ' . a:preview_html_file), "\r\n", 2)
+  return 'file:///' . fnamemodify(wsl_file_path, ':gs?\\?\/?')
 endfunction
 
 function! s:exists_openbrowser() abort

@@ -35,6 +35,43 @@ function! s:t.exists_double_quotes()
   call s:assert.equals(previm#convert_to_content(arg), expected)
 endfunction
 "}}}
+let s:t = themis#suite('wsl_open_path') "{{{
+
+function! s:t.setup()
+  let self.exists_previm_wsl_open_path_format = exists('g:previm_wsl_open_path_format')
+  if self.exists_previm_wsl_open_path_format
+    let self.previm_wsl_open_path_format = g:previm_wsl_open_path_format
+  endif
+endfunction
+
+function! s:t.teardown()
+  if self.exists_previm_wsl_open_path_format
+    let g:previm_wsl_open_path_format = self.previm_wsl_open_path_format
+  else
+    unlet! g:previm_wsl_open_path_format
+  endif
+endfunction
+
+function! s:t.default_windows_path()
+  let actual = previm#wsl_open_path('/tmp/previm/index.html', 'C:\Users\me\AppData\Local\Temp\previm\index.html')
+  let expected = 'file:///C:/Users/me/AppData/Local/Temp/previm/index.html'
+  call s:assert.equals(actual, expected)
+endfunction
+
+function! s:t.windows_path()
+  let g:previm_wsl_open_path_format = 'windows'
+  let actual = previm#wsl_open_path('/tmp/previm/index.html', 'C:\Users\me\AppData\Local\Temp\previm\index.html')
+  let expected = 'file:///C:/Users/me/AppData/Local/Temp/previm/index.html'
+  call s:assert.equals(actual, expected)
+endfunction
+
+function! s:t.wsl_path()
+  let g:previm_wsl_open_path_format = 'wsl'
+  let actual = previm#wsl_open_path('/tmp/previm/index.html', 'C:\Users\me\AppData\Local\Temp\previm\index.html')
+  let expected = '/tmp/previm/index.html'
+  call s:assert.equals(actual, expected)
+endfunction
+"}}}
 let s:t = themis#suite('relative_to_absolute') "{{{
 
 function! s:t.nothing_when_empty()

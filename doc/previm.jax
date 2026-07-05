@@ -94,6 +94,25 @@ g:previm_open_cmd					*g:previm_open_cmd*
         let g:previm_open_cmd = 'open -a Google\ Chrome'
 <
 
+g:previm_wsl_open_path_format			*g:previm_wsl_open_path_format*
+	型:文字列
+
+	|g:previm_wsl_mode| が1のとき、|g:previm_open_cmd| に渡すプレビュー
+	HTMLのパス形式を指定します。
+
+	有効な値は以下です。
+	  windows	プレビューHTMLのパスを wslpath -w で変換し、Windows の
+			file:/// URLとして渡します。デフォルト値で、従来と同じ
+			動作です。
+	  wsl		プレビューHTMLのパスをWSLのパスのまま渡します。
+			|g:previm_open_cmd| に wslview を使う場合に指定します。
+>
+	" .vimrc
+	let g:previm_wsl_mode = 1
+	let g:previm_open_cmd = 'wslview'
+	let g:previm_wsl_open_path_format = 'wsl'
+<
+
 g:previm_enable_realtime			*g:previm_enable_realtime*
 	型:数値
 
@@ -332,4 +351,3 @@ open-browser.vimの使用					*previm-openbrowser*
 	- 初版
 
 vim:tw=78:ts=8:ft=help:norl:
-
