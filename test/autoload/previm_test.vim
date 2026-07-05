@@ -234,7 +234,8 @@ function! s:t.rewrite_root_relative_image_with_mapping()
   let g:previm_url_path_mappings = {'/images/': self.tmp . '/images/'}
 
   let actual = previm#relative_to_absolute_filepath('![img](/images/example.png)', '')
-  let expected = printf('![img](//localhost%s/images/example.png)', self.tmp)
+  let pre_slash = self.tmp =~# '^/' ? '' : '/'
+  let expected = printf('![img](//localhost%s%s/images/example.png)', pre_slash, self.tmp)
   call s:assert.equals(actual, expected)
 endfunction
 
