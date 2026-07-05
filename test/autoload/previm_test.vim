@@ -144,6 +144,108 @@ function! s:t.not_only_img()
   call s:assert.equals(previm#relative_to_absolute_filepath(arg_line, arg_dir), expected)
 endfunction
 "}}}
+let s:t = themis#suite('url_path_mappings') "{{{
+
+function! s:t.setup()
+  let self.cwd = getcwd()
+  let self.tmp = tempname()
+  call mkdir(self.tmp, 'p')
+
+  let self.exists_global_mappings = exists('g:previm_url_path_mappings')
+  if self.exists_global_mappings
+    let self.global_mappings = g:previm_url_path_mappings
+  endif
+
+  let self.exists_buffer_mappings = exists('b:previm_url_path_mappings')
+  if self.exists_buffer_mappings
+    let self.buffer_mappings = b:previm_url_path_mappings
+  endif
+
+  let self.exists_wsl_mode = exists('g:previm_wsl_mode')
+  if self.exists_wsl_mode
+    let self.wsl_mode = g:previm_wsl_mode
+  endif
+endfunction
+
+function! s:t.teardown()
+  execute 'lcd' fnameescape(self.cwd)
+  call delete(self.tmp, 'rf')
+
+  if self.exists_global_mappings
+    let g:previm_url_path_mappings = self.global_mappings
+  else
+    unlet! g:previm_url_path_mappings
+  endif
+
+  if self.exists_buffer_mappings
+    let b:previm_url_path_mappings = self.buffer_mappings
+  else
+    unlet! b:previm_url_path_mappings
+  endif
+
+  if self.exists_wsl_mode
+    let g:previm_wsl_mode = self.wsl_mode
+  else
+    unlet! g:previm_wsl_mode
+  endif
+endfunction
+
+function! s:t.resolve_with_cwd_placeholder()
+  call mkdir(self.tmp . '/public/assets', 'p')
+  call writefile([], self.tmp . '/public/assets/example.png')
+  execute 'lcd' fnameescape(self.tmp)
+  let g:previm_url_path_mappings = {'/assets/': '{cwd}/public/assets/'}
+
+  let actual = previm#resolve_url_path_mapping('/assets/example.png')
+  let expected = self.tmp . '/public/assets/example.png'
+  call s:assert.equals(actual, expected)
+endfunction
+
+function! s:t.resolve_buffer_mapping_before_global_mapping()
+  call mkdir(self.tmp . '/global/images', 'p')
+  call mkdir(self.tmp . '/buffer/images', 'p')
+  call writefile([], self.tmp . '/global/images/example.png')
+  call writefile([], self.tmp . '/buffer/images/example.png')
+  let g:previm_url_path_mappings = {'/images/': self.tmp . '/global/images/'}
+  let b:previm_url_path_mappings = {'/images/': self.tmp . '/buffer/images/'}
+
+  let actual = previm#resolve_url_path_mapping('/images/example.png')
+  let expected = self.tmp . '/buffer/images/example.png'
+  call s:assert.equals(actual, expected)
+endfunction
+
+function! s:t.resolve_with_gitroot_placeholder()
+  call mkdir(self.tmp . '/.git', 'p')
+  call mkdir(self.tmp . '/articles', 'p')
+  call mkdir(self.tmp . '/images', 'p')
+  call writefile([], self.tmp . '/articles/example.md')
+  call writefile([], self.tmp . '/images/example.png')
+  execute 'edit' fnameescape(self.tmp . '/articles/example.md')
+  let g:previm_url_path_mappings = {'/images/': '{gitroot}/images/'}
+
+  let actual = previm#resolve_url_path_mapping('/images/example.png')
+  let expected = self.tmp . '/images/example.png'
+  call s:assert.equals(actual, expected)
+endfunction
+
+function! s:t.rewrite_root_relative_image_with_mapping()
+  call mkdir(self.tmp . '/images', 'p')
+  call writefile([], self.tmp . '/images/example.png')
+  let g:previm_url_path_mappings = {'/images/': self.tmp . '/images/'}
+
+  let actual = previm#relative_to_absolute_filepath('![img](/images/example.png)', '')
+  let expected = printf('![img](//localhost%s/images/example.png)', self.tmp)
+  call s:assert.equals(actual, expected)
+endfunction
+
+function! s:t.convert_mapped_path_for_wsl_mode()
+  let g:previm_wsl_mode = 1
+
+  let actual = previm#url_path_mapping_local_path('/home/me/repo/images/example.png', 'C:\Users\me\repo\images\example.png')
+  let expected = 'C:/Users/me/repo/images/example.png'
+  call s:assert.equals(actual, expected)
+endfunction
+"}}}
 let s:t = themis#suite('fetch_filepath_elements') "{{{
 
 function! s:t.nothing_when_empty()

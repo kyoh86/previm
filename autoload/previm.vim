@@ -364,7 +364,12 @@ function! previm#relative_to_absolute_filepath(text, mkd_dir) abort
     endif
   endfor
 
-  if s:is_absolute_path(elem.path)
+  let mapped_path = previm#resolve_url_path_mapping(elem.path)
+  if !empty(mapped_path)
+    let mapped_path = previm#url_path_mapping_local_path(mapped_path)
+    let pre_slash = s:start_with(mapped_path, '/') ? '' : '/'
+    let local_path = substitute(mapped_path, ' ', '%20', 'g')
+  elseif s:is_absolute_path(elem.path)
     " ローカルの絶対パスはそのままとする
     let pre_slash = '/'
     let local_path = substitute(elem.path, ' ', '%20', 'g')
@@ -412,6 +417,94 @@ function! previm#relative_to_absolute_filepath(text, mkd_dir) abort
   " unify quote
   let text = substitute(a:text, "'", '"', 'g')
   return substitute(text, prev_filepath, new_filepath, '')
+endfunction
+
+function! previm#resolve_url_path_mapping(path) abort
+  if !s:start_with(a:path, '/') || s:start_with(a:path, '//')
+    return ''
+  endif
+
+  let mappings = get(b:, 'previm_url_path_mappings',
+        \ get(g:, 'previm_url_path_mappings', {}))
+  if type(mappings) !=# type({})
+    return ''
+  endif
+
+  for prefix in sort(keys(mappings), {left, right -> strlen(right) - strlen(left)})
+    if !s:start_with(a:path, prefix)
+      continue
+    endif
+
+    let target_prefix = s:expand_url_path_mapping_placeholders(mappings[prefix])
+    if empty(target_prefix)
+      continue
+    endif
+
+    let target_path = s:join_path(target_prefix, a:path[strlen(prefix):])
+    if filereadable(target_path)
+      return target_path
+    endif
+  endfor
+
+  return ''
+endfunction
+
+function! previm#url_path_mapping_local_path(path, ...) abort
+  if get(g:, 'previm_wsl_mode', 0) !=# 1
+    return a:path
+  endif
+
+  let wsl_path = a:0 > 0
+        \ ? a:1
+        \ : trim(system('wslpath -w ' . a:path), "\r\n", 2)
+  return substitute(wsl_path, '\', '/', 'g')
+endfunction
+
+function! s:expand_url_path_mapping_placeholders(path) abort
+  if type(a:path) !=# type('')
+    return ''
+  endif
+
+  let result = a:path
+  if result =~# '{gitroot}'
+    let gitroot = s:find_git_root(expand('%:p:h'))
+    if empty(gitroot)
+      return ''
+    endif
+    let result = s:replace_placeholder(result, '{gitroot}', gitroot)
+  endif
+
+  let result = s:replace_placeholder(result, '{cwd}', getcwd())
+  let result = s:replace_placeholder(result, '{filedir}', expand('%:p:h'))
+  return result
+endfunction
+
+function! s:replace_placeholder(text, placeholder, value) abort
+  return substitute(a:text, '\V' . escape(a:placeholder, '\'), '\=a:value', 'g')
+endfunction
+
+function! s:find_git_root(start) abort
+  let dir = substitute(fnamemodify(a:start, ':p'), '[\/]$', '', '')
+  while !empty(dir)
+    if isdirectory(dir . '/.git') || filereadable(dir . '/.git')
+      return dir
+    endif
+
+    let parent = fnamemodify(dir, ':h')
+    if parent ==# dir
+      return ''
+    endif
+    let dir = parent
+  endwhile
+
+  return ''
+endfunction
+
+function! s:join_path(base, path) abort
+  if empty(a:path)
+    return a:base
+  endif
+  return substitute(a:base, '[\/]$', '', '') . '/' . a:path
 endfunction
 
 function! previm#fetch_filepath_elements(text) abort

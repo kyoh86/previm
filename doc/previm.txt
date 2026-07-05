@@ -123,6 +123,34 @@ g:previm_wsl_open_path_format			*g:previm_wsl_open_path_format*
 	let g:previm_wsl_open_path_format = 'wsl'
 <
 
+g:previm_url_path_mappings			*g:previm_url_path_mappings*
+b:previm_url_path_mappings			*b:previm_url_path_mappings*
+	Type:Dictionary
+
+	Specify URL path mappings for root-relative links in Markdown.
+	Buffer-local |b:previm_url_path_mappings| takes precedence over
+	|g:previm_url_path_mappings|.
+
+	The dictionary key is a root-relative URL prefix. The value is a local
+	path prefix. The following placeholders are supported in the local path:
+
+	  {gitroot}	The nearest Git repository root for the current buffer.
+	  {cwd}		Vim's current working directory.
+	  {filedir}	The current buffer's directory.
+>
+	" .vimrc
+	let g:previm_url_path_mappings = {
+	\  '/images/': '{gitroot}/images/',
+	\  '/assets/': '{cwd}/public/assets/',
+	\}
+<
+	For example, with the above setting, a Markdown image link such as
+	/images/example.png is previewed from {gitroot}/images/example.png when
+	the target file exists.
+
+	If no mapping matches, a placeholder cannot be resolved, or the target
+	file does not exist, Previm keeps the existing path handling.
+
 g:previm_enable_realtime			*g:previm_enable_realtime*
 	Type:Num
 

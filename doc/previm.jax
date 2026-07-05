@@ -113,6 +113,34 @@ g:previm_wsl_open_path_format			*g:previm_wsl_open_path_format*
 	let g:previm_wsl_open_path_format = 'wsl'
 <
 
+g:previm_url_path_mappings			*g:previm_url_path_mappings*
+b:previm_url_path_mappings			*b:previm_url_path_mappings*
+	型:辞書
+
+	Markdown内のルート相対リンクに対するURLパスマッピングを指定します。
+	バッファローカルの |b:previm_url_path_mappings| は
+	|g:previm_url_path_mappings| より優先されます。
+
+	辞書のキーにはルート相対URLのprefixを指定します。値にはローカルパスの
+	prefixを指定します。ローカルパスでは以下のplaceholderを利用できます。
+
+	  {gitroot}	現在のバッファから見て最も近いGit repository root
+	  {cwd}		Vimのcurrent working directory
+	  {filedir}	現在のバッファのディレクトリ
+>
+	" .vimrc
+	let g:previm_url_path_mappings = {
+	\  '/images/': '{gitroot}/images/',
+	\  '/assets/': '{cwd}/public/assets/',
+	\}
+<
+	たとえば上記の設定がある場合、/images/example.png というMarkdownの
+	画像リンクは、対象ファイルが存在すれば {gitroot}/images/example.png
+	からプレビューされます。
+
+	一致するmappingがない場合、placeholderを解決できない場合、または対象
+	ファイルが存在しない場合は、Previmは既存のパス処理を維持します。
+
 g:previm_enable_realtime			*g:previm_enable_realtime*
 	型:数値
 
